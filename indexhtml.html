@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Struk SPBU PDF Thermal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  body {
+    background:#f2f2f2;
+    font-family: "Courier New", monospace;
+    display:flex;
+    justify-content:center;
+    padding:20px;
+  }
+  .container {
+    width:360px;
+  }
+  form {
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+  }
+  input {
+    width:100%;
+    margin-bottom:8px;
+    padding:6px;
+    font-family: inherit;
+  }
+  button {
+    width:100%;
+    padding:8px;
+    background:#000;
+    color:white;
+    border:none;
+    cursor:pointer;
+    margin-top:5px;
+  }
+  .receipt {
+    background:white;
+    padding:15px;
+    font-size:14px;
+    display:none;
+    width:80mm;
+  }
+  .row {
+    display:flex;
+    justify-content:space-between;
+  }
+  .bold {
+    font-weight:bold;
+  }
+  .spbu-besar {
+    font-size:18px;
+    font-weight:bold;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <form onsubmit="return false;">
+    <input type="text" id="spbu" placeholder="SPBU No (64.731.10)" />
+    <input type="text" id="alamat" placeholder="Alamat" />
+    <input type="text" id="telp" placeholder="Telp" />
+    <input type="text" id="tanggal" placeholder="Tanggal (misal 04/03/2026)" />
+    <input type="text" id="jam" placeholder="Jam (misal 14:38)" />
+    <input type="text" id="receiptno" placeholder="Receipt No" />
+    <input type="text" id="pump" placeholder="Pump No" />
+    <input type="text" id="grade" placeholder="Grade" />
+    <input type="number" step="0.01" id="volume" placeholder="Volume (Liter)" />
+    <input type="number" id="price" placeholder="Unit Price" />
+    <input type="text" id="vehicle" placeholder="Vehicle No" />
+    <button onclick="buatStruk()">Tampilkan Struk</button>
+    <button onclick="printPDF()">Export PDF Thermal</button>
+  </form>
+
+  <div class="receipt" id="output">
+    <div class="spbu-besar" id="o_spbu"></div>
+    <div id="o_alamat"></div>
+    <br>
+    <div>KALTENG</div>
+    <div id="o_telp"></div>
+    <br>
+    <div class="row">
+      <span id="o_tanggal"></span>
+      <span id="o_jam"></span>
+    </div>
+    <div id="o_receipt_div">Receipt No. <span id="o_receipt"></span></div>
+    <br>
+    <div class="row"><span>Pump No</span><span id="o_pump"></span></div>
+    <div class="row"><span>Grade</span><span id="o_grade"></span></div>
+    <div class="row"><span>Volume(LITER)</span><span id="o_volume"></span></div>
+    <div class="row"><span>Unit Price(RUPIAH)</span><span id="o_price"></span></div>
+    <div class="row bold"><span>Amount</span><span id="o_total"></span></div>
+    <br>
+    <div class="row"><span>Vehicle No</span><span id="o_vehicle"></span></div>
+    <br>
+    <div>TERIMAKASIH DAN</div>
+  </div>
+</div>
+
+<script>
+let volume, price, total;
+
+// Format ribuan
+function formatRupiah(num){
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g,".");
+}
+
+function buatStruk(){
+  volume = parseFloat(document.getElementById("volume").value)||0;
+  price = parseFloat(document.getElementById("price").value)||0;
+  total = volume*price;
+
+  let tanggal = document.getElementById("tanggal").value || "";
+  let jam = document.getElementById("jam").value || "";
+
+  let alamat = document.getElementById("alamat").value.toUpperCase();
+  let grade = document.getElementById("grade").value.toUpperCase();
+
+  document.getElementById("o_spbu").innerText = "SPBU. " + document.getElementById("spbu").value;
+  document.getElementById("o_alamat").innerText = alamat;
+  document.getElementById("o_telp").innerText = "Telp. " + document.getElementById("telp").value;
+  document.getElementById("o_tanggal").innerText = tanggal;
+  document.getElementById("o_jam").innerText = jam;
+  document.getElementById("o_receipt").innerText = document.getElementById("receiptno").value;
+  document.getElementById("o_pump").innerText = document.getElementById("pump").value;
+  document.getElementById("o_grade").innerText = grade;
+  document.getElementById("o_volume").innerText = volume.toFixed(2);
+  document.getElementById("o_price").innerText = formatRupiah(price);
+  document.getElementById("o_total").innerText = formatRupiah(total);
+  document.getElementById("o_vehicle").innerText = document.getElementById("vehicle").value || "Not Entered";
+
+  document.getElementById("output").style.display = "block";
+}
+
+function printPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:[80, 170]});
+  let y = 8;
+  const lineHeight = 6;
+  const marginLeft = 3;
+  const marginRight = 77;
+
+  // Ambil data dari elemen struk
+  const spbu = document.getElementById("o_spbu").innerText;
+  const alamat = document.getElementById("o_alamat").innerText;
+  const telp = document.getElementById("o_telp").innerText;
+  const tanggal = document.getElementById("o_tanggal").innerText;
+  const jam = document.getElementById("o_jam").innerText;
+  const receipt = document.getElementById("o_receipt").innerText;
+  const pump = document.getElementById("o_pump").innerText;
+  const grade = document.getElementById("o_grade").innerText;
+  const volumeText = document.getElementById("o_volume").innerText;
+  const priceText = document.getElementById("o_price").innerText;
+  const totalText = document.getElementById("o_total").innerText;
+  const vehicle = document.getElementById("o_vehicle").innerText;
+
+  // Header
+  doc.setFont("Courier", "bold");
+  doc.setFontSize(14);
+  doc.text(spbu, marginLeft, y);
+  y += lineHeight + 1;
+
+  doc.setFont("Courier", "normal");
+  doc.setFontSize(10);
+  doc.text(alamat, marginLeft, y);
+  y += lineHeight;
+  doc.text("KALTENG", marginLeft, y);
+  y += lineHeight;
+  doc.text(telp, marginLeft, y);
+  y += lineHeight + 2;
+  
+  // Tanggal & Jam
+  doc.text(tanggal, marginLeft, y);
+  doc.text(jam, marginRight, y, {align:"right"});
+  y += lineHeight;
+
+  // Receipt No
+  doc.text("Receipt No. " + receipt, marginLeft, y);
+  y += lineHeight + 2;
+
+  // Fungsi bantu untuk menulis baris dengan label kiri dan nilai kanan
+  function addRow(label, value, isBold = false) {
+    if (isBold) doc.setFont("Courier", "bold");
+    else doc.setFont("Courier", "normal");
+    
+    doc.text(label, marginLeft, y);
+    doc.text(value, marginRight, y, {align:"right"});
+    y += lineHeight;
+  }
+
+  // Detail transaksi
+  addRow("Pump No.", pump);
+  addRow("Grade", grade);
+  addRow("Volume(LITER)", volumeText);
+  addRow("Unit Price(RUPIAH)", priceText);
+  addRow("Amount", totalText, true); // Amount jadi bold
+  
+  y += 1;
+
+  // Vehicle No
+  addRow("Vehicle No.", vehicle);
+  
+  y += 2;
+
+  // Footer
+  doc.setFont("Courier", "normal");
+  doc.text("TERIMAKASIH DAN", marginLeft, y);
+
+  // Simpan PDF
+  doc.save("struk_spbu.pdf");
+}
+</script>
+
+</body>
+</html>
